@@ -124,6 +124,10 @@ const AI_REPLIES: Record<string, string> = {
   "Summarize my Fourier notes": "Based on your notes (612 words, Jul 10), here's a summary:\n\n🔑 Key Concepts:\n• Fourier Series decomposes periodic functions into sinusoidal components\n• Formula: f(x) = a₀/2 + Σ(aₙcos(nπx/L) + bₙsin(nπx/L))\n• Fourier Transform extends this to non-periodic functions\n• Applications: signal processing, image compression, quantum mechanics\n\nWant me to create flashcards from these notes? 🃏",
 };
 
+const AI_MSGS = [
+  { role: "ai", text: "Hi! I'm your Nexora AI assistant. How can I help you today? 🎓" }
+];
+
 const CAL_EVENTS: Record<number, { type: string; label: string }[]> = {
   13: [{ type: "assignment", label: "Physics PS" }],
   15: [{ type: "exam", label: "Physics Mid-term" }],
@@ -371,12 +375,59 @@ function OnboardingScreen({ nav, c }: { nav: (s: string) => void; c: C }) {
   );
 }
 
+const API_BASE = "http://localhost:8000/api/v1";
+
 function LoginScreen({ nav, c }: { nav: (s: string) => void; c: C }) {
   const [mode, setMode] = useState<"login" | "signup" | "forgot" | "otp">("login");
-  const [email, setEmail] = useState("alex.johnson@university.edu");
-  const [pass, setPass] = useState("••••••••");
+  const [email, setEmail] = useState("");
+  const [pass, setPass] = useState("");
+  const [fullName, setFullName] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const inputStyle: React.CSSProperties = { width: "100%", padding: "14px 16px", borderRadius: 14, background: c.inputBg, border: `1.5px solid ${c.border}`, color: c.text, fontSize: 15, outline: "none", fontFamily: "'Inter',sans-serif", boxSizing: "border-box" as const };
+
+  const handleSubmit = async () => {
+    setError("");
+    if (!email.trim() || !pass.trim()) { setError("Please fill in all fields."); return; }
+    if (mode === "signup" && !fullName.trim()) { setError("Please enter your full name."); return; }
+    setLoading(true);
+    try {
+      if (mode === "signup") {
+        const res = await fetch(`${API_BASE}/auth/signup`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password: pass, full_name: fullName, semester: 1, department: "General" }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Signup failed");
+        // Auto-login after signup
+        const loginRes = await fetch(`${API_BASE}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password: pass }),
+        });
+        const loginData = await loginRes.json();
+        if (!loginRes.ok) throw new Error(loginData.detail || "Login failed");
+        localStorage.setItem("nexora_token", loginData.access_token);
+        nav("dashboard");
+      } else {
+        const res = await fetch(`${API_BASE}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password: pass }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Login failed");
+        localStorage.setItem("nexora_token", data.access_token);
+        nav("dashboard");
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (mode === "otp") return (
     <div style={{ height: "100%", background: c.bg, padding: "60px 28px 32px", display: "flex", flexDirection: "column" }}>
@@ -437,10 +488,15 @@ function LoginScreen({ nav, c }: { nav: (s: string) => void; c: C }) {
           ))}
         </Row>
 
+        {error && (
+          <div style={{ padding: "12px 14px", borderRadius: 12, background: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626", fontSize: 13, fontWeight: 500 }}>
+            ⚠️ {error}
+          </div>
+        )}
         {mode === "signup" && (
           <div>
             <label style={{ fontSize: 13, fontWeight: 600, color: c.muted, display: "block", marginBottom: 8 }}>Full Name</label>
-            <input defaultValue="Alex Johnson" style={inputStyle} placeholder="Your full name" />
+            <input value={fullName} onChange={e => setFullName(e.target.value)} style={inputStyle} placeholder="Your full name" />
           </div>
         )}
         <div>
@@ -454,8 +510,8 @@ function LoginScreen({ nav, c }: { nav: (s: string) => void; c: C }) {
           </Row>
           <input type="password" value={pass} onChange={e => setPass(e.target.value)} style={inputStyle} placeholder="••••••••" />
         </div>
-        <button onClick={() => nav("dashboard")} style={{ width: "100%", padding: 16, borderRadius: 18, background: `linear-gradient(135deg, ${c.p}, ${c.a})`, color: "#fff", border: "none", fontSize: 16, fontWeight: 700, cursor: "pointer", fontFamily: "'Plus Jakarta Sans',sans-serif", boxShadow: `0 8px 30px ${c.p}40` }}>
-          {mode === "login" ? "Sign In to Nexora" : "Create Account"}
+        <button onClick={handleSubmit} disabled={loading} style={{ width: "100%", padding: 16, borderRadius: 18, background: loading ? c.muted : `linear-gradient(135deg, ${c.p}, ${c.a})`, color: "#fff", border: "none", fontSize: 16, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Plus Jakarta Sans',sans-serif", boxShadow: loading ? "none" : `0 8px 30px ${c.p}40`, transition: "all 0.2s", opacity: loading ? 0.7 : 1 }}>
+          {loading ? (mode === "login" ? "Signing in…" : "Creating account…") : (mode === "login" ? "Sign In to Nexora" : "Create Account")}
         </button>
 
         <Row style={{ gap: 12, alignItems: "center" }}>
@@ -1051,19 +1107,6 @@ function AttendanceScreen({ nav, c }: { nav: (s: string) => void; c: C }) {
   );
 }
 
-const AI_MSGS = [
-  { role: "ai", text: "Hi! I'm your Nexora AI assistant. How can I help you today?" }
-];
-
-const AI_REPLIES: Record<string, string> = {
-  "Summarize chapter 4 biology notes": "Here is a brief summary of Chapter 4 Biology:\n\n• Cell structure and function\n• DNA replication\n• Cellular respiration\n\nWould you like me to create flashcards for these?",
-};
-
-const AI_PROMPTS = [
-  "Summarize chapter 4 biology notes",
-  "Create a quiz for my upcoming history exam",
-  "Help me brainstorm essay topics for literature"
-];
 
 function AIAssistantScreen({ nav, c }: { nav: (s: string) => void; c: C }) {
   const [messages, setMessages] = useState(AI_MSGS);
