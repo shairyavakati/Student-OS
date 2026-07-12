@@ -5,8 +5,8 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'StudentOS',
-  description: 'The AI-Powered Academic Operating System for Students',
+  title: 'Nexora',
+  description: 'The Future of Student Productivity.',
 };
 
 export default function RootLayout({
