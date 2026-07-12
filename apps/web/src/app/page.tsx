@@ -138,7 +138,7 @@ const ONBOARDING = [
   {
     emoji: "🎓",
     title: "All Your Academic Life\nIn One Place",
-    desc: "StudentOS brings your classes, notes, assignments, attendance, and study tools into a single beautiful workspace.",
+    desc: "Nexora brings your classes, notes, assignments, attendance, and study tools into a single beautiful workspace.",
     color: "#5B6CFF",
     bg: ["#5B6CFF", "#8A7BFF"],
   },
@@ -316,8 +316,8 @@ function SplashScreen({ nav }: { nav: (s: string) => void }) {
           <GraduationCap size={48} color="#fff" strokeWidth={1.5} />
         </div>
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 32, fontWeight: 800, color: "#fff", fontFamily: "'Plus Jakarta Sans',sans-serif", letterSpacing: -0.5 }}>StudentOS</div>
-          <div style={{ fontSize: 14, color: "rgba(255,255,255,0.75)", marginTop: 4, fontWeight: 500 }}>Your academic life, organized</div>
+          <div style={{ fontSize: 32, fontWeight: 800, color: "#fff", fontFamily: "'Plus Jakarta Sans',sans-serif", letterSpacing: -0.5 }}>Nexora</div>
+          <div style={{ fontSize: 14, color: "rgba(255,255,255,0.75)", marginTop: 4, fontWeight: 500 }}>The Future of Student Productivity.</div>
         </div>
       </div>
       <div style={{ position: "absolute", bottom: 60, display: "flex", gap: 8 }}>
@@ -421,7 +421,7 @@ function LoginScreen({ nav, c }: { nav: (s: string) => void; c: C }) {
         <div>
           <Row style={{ gap: 8, marginBottom: 6 }}>
             <GraduationCap size={20} color="#fff" />
-            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.9)", fontWeight: 600 }}>StudentOS</span>
+            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.9)", fontWeight: 600 }}>Nexora</span>
           </Row>
           <div style={{ fontSize: 26, fontWeight: 800, color: "#fff", fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
             {mode === "login" ? "Welcome back 👋" : "Create account ✨"}
@@ -455,7 +455,7 @@ function LoginScreen({ nav, c }: { nav: (s: string) => void; c: C }) {
           <input type="password" value={pass} onChange={e => setPass(e.target.value)} style={inputStyle} placeholder="••••••••" />
         </div>
         <button onClick={() => nav("dashboard")} style={{ width: "100%", padding: 16, borderRadius: 18, background: `linear-gradient(135deg, ${c.p}, ${c.a})`, color: "#fff", border: "none", fontSize: 16, fontWeight: 700, cursor: "pointer", fontFamily: "'Plus Jakarta Sans',sans-serif", boxShadow: `0 8px 30px ${c.p}40` }}>
-          {mode === "login" ? "Sign In to StudentOS" : "Create Account"}
+          {mode === "login" ? "Sign In to Nexora" : "Create Account"}
         </button>
 
         <Row style={{ gap: 12, alignItems: "center" }}>
@@ -1051,6 +1051,20 @@ function AttendanceScreen({ nav, c }: { nav: (s: string) => void; c: C }) {
   );
 }
 
+const AI_MSGS = [
+  { role: "ai", text: "Hi! I'm your Nexora AI assistant. How can I help you today?" }
+];
+
+const AI_REPLIES: Record<string, string> = {
+  "Summarize chapter 4 biology notes": "Here is a brief summary of Chapter 4 Biology:\n\n• Cell structure and function\n• DNA replication\n• Cellular respiration\n\nWould you like me to create flashcards for these?",
+};
+
+const AI_PROMPTS = [
+  "Summarize chapter 4 biology notes",
+  "Create a quiz for my upcoming history exam",
+  "Help me brainstorm essay topics for literature"
+];
+
 function AIAssistantScreen({ nav, c }: { nav: (s: string) => void; c: C }) {
   const [messages, setMessages] = useState(AI_MSGS);
   const [input, setInput] = useState("");
@@ -1350,7 +1364,7 @@ function SettingsScreen({ nav, c, isDark, setIsDark }: { nav: (s: string) => voi
       </div>
 
       <Section title="Appearance" />
-      <div style={{ ...glass(c), marginHorizontal: 0, overflow: "hidden", margin: "0 16px" }}>
+      <div style={{ ...glass(c), overflow: "hidden", margin: "0 16px" }}>
         <Item icon={isDark ? Moon : Sun} label="Dark Mode" color={c.p} right={<Toggle on={isDark} setOn={setIsDark} />} />
         <Item icon={Globe} label="Language" color={c.c} right={<span style={{ fontSize: 14, color: c.muted, marginRight: 4 }}>English</span>} />
       </div>
@@ -1377,7 +1391,7 @@ function SettingsScreen({ nav, c, isDark, setIsDark }: { nav: (s: string) => voi
 
       <Section title="About" />
       <div style={{ ...glass(c), overflow: "hidden", margin: "0 16px" }}>
-        <Item icon={GraduationCap} label="StudentOS v2.4.1" color={c.p} right={<span style={{ fontSize: 12, color: c.s, fontWeight: 600, marginRight: 4 }}>Up to date</span>} />
+        <Item icon={GraduationCap} label="Nexora v2.4.1" color={c.p} right={<span style={{ fontSize: 12, color: c.s, fontWeight: 600, marginRight: 4 }}>Up to date</span>} />
         <Item icon={Star} label="Rate the App" color={c.w} />
       </div>
     </div>
@@ -1803,7 +1817,7 @@ export default function App() {
         <div style={{ width: 36, height: 36, borderRadius: 12, background: "linear-gradient(135deg, #5B6CFF, #8A7BFF)", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <GraduationCap size={20} color="#fff" strokeWidth={1.8} />
         </div>
-        <span style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: -0.3 }}>StudentOS</span>
+        <span style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: -0.3 }}>Nexora</span>
         <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 600, background: "rgba(91,108,255,0.2)", padding: "3px 10px", borderRadius: 20, border: "1px solid rgba(91,108,255,0.3)" }}>Design System</span>
       </div>
 
