@@ -375,7 +375,7 @@ function OnboardingScreen({ nav, c }: { nav: (s: string) => void; c: C }) {
   );
 }
 
-const API_BASE = "http://localhost:8000/api/v1";
+const API_BASE = ""; // Use Next.js API proxy routes to avoid CORS
 
 function LoginScreen({ nav, c }: { nav: (s: string) => void; c: C }) {
   const [mode, setMode] = useState<"login" | "signup" | "forgot" | "otp">("login");
@@ -387,6 +387,14 @@ function LoginScreen({ nav, c }: { nav: (s: string) => void; c: C }) {
   const [error, setError] = useState("");
   const inputStyle: React.CSSProperties = { width: "100%", padding: "14px 16px", borderRadius: 14, background: c.inputBg, border: `1.5px solid ${c.border}`, color: c.text, fontSize: 15, outline: "none", fontFamily: "'Inter',sans-serif", boxSizing: "border-box" as const };
 
+  const switchMode = (newMode: "login" | "signup") => {
+    setMode(newMode);
+    setError("");
+    setEmail("");
+    setPass("");
+    setFullName("");
+  };
+
   const handleSubmit = async () => {
     setError("");
     if (!email.trim() || !pass.trim()) { setError("Please fill in all fields."); return; }
@@ -394,7 +402,7 @@ function LoginScreen({ nav, c }: { nav: (s: string) => void; c: C }) {
     setLoading(true);
     try {
       if (mode === "signup") {
-        const res = await fetch(`${API_BASE}/auth/signup`, {
+        const res = await fetch(`/api/auth/signup`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password: pass, full_name: fullName, semester: 1, department: "General" }),
@@ -402,17 +410,17 @@ function LoginScreen({ nav, c }: { nav: (s: string) => void; c: C }) {
         const data = await res.json();
         if (!res.ok) throw new Error(data.detail || "Signup failed");
         // Auto-login after signup
-        const loginRes = await fetch(`${API_BASE}/auth/login`, {
+        const loginRes = await fetch(`/api/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password: pass }),
         });
         const loginData = await loginRes.json();
-        if (!loginRes.ok) throw new Error(loginData.detail || "Login failed");
+        if (!loginRes.ok) throw new Error(loginData.detail || "Login after signup failed");
         localStorage.setItem("nexora_token", loginData.access_token);
         nav("dashboard");
       } else {
-        const res = await fetch(`${API_BASE}/auth/login`, {
+        const res = await fetch(`/api/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password: pass }),
@@ -482,7 +490,7 @@ function LoginScreen({ nav, c }: { nav: (s: string) => void; c: C }) {
       <div style={{ padding: "28px 28px 32px", display: "flex", flexDirection: "column", gap: 16 }}>
         <Row style={{ background: c.inputBg, borderRadius: 14, padding: 4, gap: 2 }}>
           {(["login", "signup"] as const).map(m => (
-            <button key={m} onClick={() => setMode(m)} style={{ flex: 1, padding: "10px", borderRadius: 11, background: mode === m ? c.p : "transparent", color: mode === m ? "#fff" : c.muted, border: "none", fontSize: 14, fontWeight: 700, cursor: "pointer", transition: "all 0.2s" }}>
+            <button key={m} onClick={() => switchMode(m)} style={{ flex: 1, padding: "10px", borderRadius: 11, background: mode === m ? c.p : "transparent", color: mode === m ? "#fff" : c.muted, border: "none", fontSize: 14, fontWeight: 700, cursor: "pointer", transition: "all 0.2s" }}>
               {m === "login" ? "Sign In" : "Sign Up"}
             </button>
           ))}

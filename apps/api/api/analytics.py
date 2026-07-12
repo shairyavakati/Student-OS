@@ -1,10 +1,10 @@
 from typing import Optional
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from database.session import get_db
-from dependencies.auth import get_current_user
-from models.all_models import Profile
-from repositories.all_repositories import assignment_repo, attendance_repo
+from ..database.session import get_db
+from ..dependencies.auth import get_current_user
+from ..models.all_models import Profile
+from ..repositories.all_repositories import assignment_repo, attendance_repo
 
 router = APIRouter()
 

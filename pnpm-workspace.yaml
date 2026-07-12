@@ -1,6 +1,11 @@
 packages:
   - 'apps/*'
+onlyBuiltDependencies:
+  - '@tailwindcss/oxide'
+  - 'esbuild'
+  - 'sharp'
+allowNonAppliedPatches: true
 allowBuilds:
-  '@tailwindcss/oxide': set this to true or false
-  esbuild: set this to true or false
-  sharp: set this to true or false
+  '@tailwindcss/oxide': true
+  esbuild: true
+  sharp: true

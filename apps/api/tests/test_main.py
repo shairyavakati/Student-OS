@@ -3,7 +3,7 @@ import pytest
 import uuid
 
 # Import the main FastAPI app
-from main import app
+from apps.api.main import app
 
 client = TestClient(app)
 

@@ -3,7 +3,7 @@ from sqlalchemy import Column, String, Integer, Boolean, ForeignKey, Time, Date,
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
-from database.session import Base
+from ..database.session import Base
 
 class Profile(Base):
     __tablename__ = "profiles"

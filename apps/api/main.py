@@ -1,11 +1,11 @@
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from core.config import settings
-from database.session import Base, engine
+from .core.config import settings
+from .database.session import Base, engine
 
 # Import routers
-from api import auth, profile, subjects, timetable, notes, assignments, attendance, analytics, calendar, ai, groups
+from .api import auth, profile, subjects, timetable, notes, assignments, attendance, analytics, calendar, ai, groups
 
 app = FastAPI(
     title=settings.PROJECT_NAME,

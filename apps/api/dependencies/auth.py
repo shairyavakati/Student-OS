@@ -5,11 +5,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from jose import jwt
 from uuid import UUID
 
-from core.config import settings
-from core.security import decode_token
-from database.session import get_db
-from repositories.all_repositories import user_repo
-from models.all_models import Profile
+from ..core.config import settings
+from ..core.security import decode_token
+from ..database.session import get_db
+from ..repositories.all_repositories import user_repo
+from ..models.all_models import Profile
 
 security_scheme = HTTPBearer()
 

@@ -2,7 +2,7 @@ from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 from uuid import UUID
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from database.session import Base
+from ..database.session import Base
 
 ModelType = TypeVar("ModelType", bound=Base)
 

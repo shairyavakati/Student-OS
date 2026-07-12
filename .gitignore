@@ -5,3 +5,8 @@ dist/
 .env.*.local
 .DS_Store
 .gemini/
+__pycache__/
+*.pyc
+.next/
+.pytest_cache/
+.vscode/

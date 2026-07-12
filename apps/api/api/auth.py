@@ -3,12 +3,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 
-from database.session import get_db
-from core.security import get_password_hash, verify_password, create_access_token, create_refresh_token, decode_token
-from repositories.all_repositories import user_repo
-from schemas.all_schemas import UserSignup, UserLogin, Token, ProfileOut
-from dependencies.auth import get_current_user
-from models.all_models import Profile
+from ..database.session import get_db
+from ..core.security import get_password_hash, verify_password, create_access_token, create_refresh_token, decode_token
+from ..repositories.all_repositories import user_repo
+from ..schemas.all_schemas import UserSignup, UserLogin, Token, ProfileOut
+from ..dependencies.auth import get_current_user
+from ..models.all_models import Profile
 
 router = APIRouter()
 

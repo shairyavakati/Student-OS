@@ -2,8 +2,8 @@ from typing import List, Optional
 from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from repositories.base_repository import BaseRepository
-from models.all_models import Profile, Subject, TimetableSlot, Note, Assignment, AttendanceRecord, CalendarEvent, StudyGroup, StudyGroupMember
+from .base_repository import BaseRepository
+from ..models.all_models import Profile, Subject, TimetableSlot, Note, Assignment, AttendanceRecord, CalendarEvent, StudyGroup, StudyGroupMember
 
 class UserRepository(BaseRepository[Profile]):
     def __init__(self):
