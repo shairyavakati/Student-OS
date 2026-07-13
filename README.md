@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/Student-OS-7C3AED?style=for-the-badge&logo=bookstack&logoColor=white" alt="StudentOS" />
+  <img src="https://img.shields.io/badge/Nexora-7C3AED?style=for-the-badge&logo=bookstack&logoColor=white" alt="Nexora" />
 </p>
 
-<h1 align="center">🎓 StudentOS — The AI-Powered Academic Operating System</h1>
+<h1 align="center">🎓 Nexora — The AI-Powered Academic Operating System</h1>
 
 <p align="center">
   <strong>A full-stack academic management platform that helps students organize subjects, timetables, notes, assignments, attendance, and study analytics — all in one place.</strong>
@@ -45,9 +45,9 @@
 
 ## 🌟 Overview
 
-**StudentOS** is a comprehensive academic operating system designed to be the single hub for everything a student needs. It combines intelligent scheduling, note-taking, assignment tracking, attendance management, and AI-powered study tools into a beautiful, responsive interface.
+**Nexora** is a comprehensive academic operating system designed to be the single hub for everything a student needs. It combines intelligent scheduling, note-taking, assignment tracking, attendance management, and AI-powered study tools into a beautiful, responsive interface.
 
-The application follows a **monorepo** architecture with a decoupled **FastAPI** backend and **Next.js** frontend, backed by **Supabase** (PostgreSQL) for persistence and authentication.
+The application follows a **monorepo** architecture with a decoupled **FastAPI** backend and **Next.js 15 App Router** frontend, backed by **Supabase** (PostgreSQL) for persistence and authentication.
 
 ---
 
@@ -86,11 +86,11 @@ The application follows a **monorepo** architecture with a decoupled **FastAPI**
 ### Frontend
 | Technology | Purpose |
 |---|---|
-| **Next.js 15** | React framework with SSR & API routes |
+| **Next.js 15** | App Router framework with SSR & API routes |
 | **React 19** | UI component library |
 | **TypeScript** | Type-safe JavaScript |
-| **Tailwind CSS** | Utility-first CSS framework |
-| **Radix UI** | Accessible headless UI primitives |
+| **Tailwind CSS v4** | Utility-first CSS framework |
+| **shadcn/ui** | Accessible headless UI primitives |
 | **Recharts** | Data visualization charts |
 | **Zustand** | Lightweight state management |
 | **Framer Motion** | Animations and transitions |
@@ -107,7 +107,7 @@ The application follows a **monorepo** architecture with a decoupled **FastAPI**
 ## 📁 Project Structure
 
 ```
-StudentOS/
+Nexora/
 ├── apps/
 │   ├── api/                          # FastAPI Backend
 │   │   ├── api/                      # Route handlers
