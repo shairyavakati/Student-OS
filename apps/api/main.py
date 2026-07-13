@@ -16,17 +16,23 @@ app = FastAPI(
 )
 
 # CORS configuration
-# Allows standard local frontend servers (Next.js default 3000, Vite 5173, etc.)
-origins = [
-    "http://localhost:3000",
-    "http://localhost:5173",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:5173",
-]
+# Allows local dev servers and any Vercel deployment
+import os
+
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "")
+if ALLOWED_ORIGINS:
+    origins = [o.strip() for o in ALLOWED_ORIGINS.split(",")]
+else:
+    origins = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173",
+    ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],   # allow all — restrict via ALLOWED_ORIGINS env var in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
