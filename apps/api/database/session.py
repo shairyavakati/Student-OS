@@ -4,32 +4,18 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 from sqlalchemy.orm import declarative_base
 from ..core.config import settings
 
-# ==========================================
-# SAFELY CLEAN AND PARSE DATABASE URL
-# ==========================================
-raw_url = settings.DATABASE_URL
+# Exact, hardcoded credentials to bypass any dynamic parsing failures
+DB_USER = "postgres.ymmvlncvpagxebjgqoya"
+DB_PASS = "shairya@150307"
+DB_HOST = "aws-0-ap-southeast-1.pooler.supabase.com"
+DB_PORT = "6543"
+DB_NAME = "postgres"
 
-# Safety check: Ensure the url utilizes the asyncpg driver prefix
-if raw_url.startswith("postgresql://"):
-    raw_url = raw_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+# URL-encode the password to safely handle the '@' symbol
+encoded_pass = urllib.parse.quote_plus(DB_PASS)
 
-# Completely strip any legacy query parameters that crash asyncpg (like prepared_threshold)
-if "?" in raw_url:
-    raw_url = raw_url.split("?")[0]
-
-# Fix for special characters like '@' in your password (shairya@150307)
-if "://" in raw_url and raw_url.count("@") > 1:
-    try:
-        scheme, remainder = raw_url.split("://", 1)
-        auth_chunk, host_chunk = remainder.rsplit("@", 1)
-        
-        if ":" in auth_chunk:
-            username, password = auth_chunk.split(":", 1)
-            # URL encode the password safely (converts '@' to '%40')
-            safe_password = urllib.parse.quote_plus(password)
-            raw_url = f"{scheme}://{username}:{safe_password}@{host_chunk}"
-    except Exception:
-        pass
+# Construct a clean connection string
+raw_url = f"postgresql+asyncpg://{DB_USER}:{encoded_pass}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 # ==========================================
 # ASYNC ENGINE INITIALIZATION
@@ -38,10 +24,10 @@ engine = create_async_engine(
     raw_url,
     echo=False,
     future=True,
-    pool_pre_ping=True,  # Disconnect protection
+    pool_pre_ping=True,
     pool_size=10,
     max_overflow=20,
-    # Pass integers directly to the asyncpg connection options to satisfy PgBouncer
+    # Crucial argument to disable prepared statement cache for connection pooling (PgBouncer)
     connect_args={
         "prepared_statement_cache_size": 0
     }
