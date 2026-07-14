@@ -13,14 +13,9 @@ raw_url = settings.DATABASE_URL
 if raw_url.startswith("postgresql://"):
     raw_url = raw_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 
-# FORCE REMOVE 'prepared_threshold' if it exists in the Render Env String
-if "prepared_threshold" in raw_url:
-    # Completely clean it out of the query params to prevent the TypeError crash
-    url_parts = raw_url.split("?")
-    base_path = url_parts[0]
-    if len(url_parts) > 1:
-        params = [p for p in url_parts[1].split("&") if "prepared_threshold" not in p]
-        raw_url = f"{base_path}?{'&'.join(params)}" if params else base_path
+# Completely strip any legacy query parameters that crash asyncpg (like prepared_threshold)
+if "?" in raw_url:
+    raw_url = raw_url.split("?")[0]
 
 # Fix for special characters like '@' in your password (shairya@150307)
 if "://" in raw_url and raw_url.count("@") > 1:
@@ -37,13 +32,6 @@ if "://" in raw_url and raw_url.count("@") > 1:
         pass
 
 # ==========================================
-# SAFE CONFIG FOR SUPABASE PGBOUNCER (6543)
-# ==========================================
-# Appending the correct, natively supported dialect cache size limitation parameter
-separator = "&" if "?" in raw_url else "?"
-raw_url = f"{raw_url}{separator}prepared_statement_cache_size=0"
-
-# ==========================================
 # ASYNC ENGINE INITIALIZATION
 # ==========================================
 engine = create_async_engine(
@@ -52,7 +40,11 @@ engine = create_async_engine(
     future=True,
     pool_pre_ping=True,  # Disconnect protection
     pool_size=10,
-    max_overflow=20
+    max_overflow=20,
+    # Pass integers directly to the asyncpg connection options to satisfy PgBouncer
+    connect_args={
+        "prepared_statement_cache_size": 0
+    }
 )
 
 # Async session maker
