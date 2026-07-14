@@ -31,7 +31,9 @@ async def signup(schema: UserSignup, db: AsyncSession = Depends(get_db)):
         hashed_password=hashed_pass,
     )
     db.add(db_obj)
-    await db.flush()
+    await db.commit()
+    await db.refresh(db_obj)
+
     return db_obj
 
 @router.post("/login", response_model=Token)
