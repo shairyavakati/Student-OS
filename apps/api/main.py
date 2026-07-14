@@ -1,3 +1,4 @@
+import os
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -5,7 +6,10 @@ from .core.config import settings
 from .database.session import Base, engine
 
 # Import routers
-from .api import auth, profile, subjects, timetable, notes, assignments, attendance, analytics, calendar, ai, groups
+from .api import (
+    auth, profile, subjects, timetable, notes, 
+    assignments, attendance, analytics, calendar, ai, groups
+)
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -15,30 +19,38 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# CORS configuration
-# Allows local dev servers and any Vercel deployment
-import os
+# ==========================================
+# SAFE CORS CONFIGURATION
+# ==========================================
+# Dynamically pull production frontend origins from environment variables
+env_origins = os.getenv("ALLOWED_ORIGINS", "")
 
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "")
-if ALLOWED_ORIGINS:
-    origins = [o.strip() for o in ALLOWED_ORIGINS.split(",")]
+if env_origins:
+    # Split by comma and remove whitespace. 
+    # Example: "https://myfrontend.vercel.app, http://localhost:3000"
+    origins = [o.strip() for o in env_origins.split(",") if o.strip()]
 else:
+    # Local fallback origins for development
     origins = [
-        "http://localhost:3000",
-        "http://localhost:5173",
+        "http://localhost:3000",   # Next.js / React default
+        "http://localhost:5173",   # Vite default
         "http://127.0.0.1:3000",
         "http://127.0.0.1:5173",
     ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   # allow all — restrict via ALLOWED_ORIGINS env var in production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=origins,   
+    allow_credentials=True,  # Mandatory if using HttpOnly cookies or Authorization headers
+    allow_methods=["*"],     # Allows GET, POST, PUT, DELETE, OPTIONS, etc.
+    allow_headers=["*"],     # Allows all custom/standard incoming headers
 )
 
-# Include API V1 Routers
+# ==========================================
+# ROUTER INCLUSIONS (V1 API)
+# ==========================================
+# Note: Ensure your frontend hits the full path: 
+# BASE_URL + API_V1_STR + "/auth/signup" (e.g., http://localhost:8000/api/v1/auth/signup)
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["Authentication"])
 app.include_router(profile.router, prefix=f"{settings.API_V1_STR}/profile", tags=["Student Profiles"])
 app.include_router(subjects.router, prefix=f"{settings.API_V1_STR}/subjects", tags=["Subjects"])
@@ -51,6 +63,7 @@ app.include_router(calendar.router, prefix=f"{settings.API_V1_STR}/calendar", ta
 app.include_router(ai.router, prefix=f"{settings.API_V1_STR}/ai", tags=["AI Advanced Features"])
 app.include_router(groups.router, prefix=f"{settings.API_V1_STR}/groups", tags=["Collaboration Study Groups"])
 
+
 @app.get("/")
 def read_root():
     return {
@@ -59,17 +72,21 @@ def read_root():
         "docs_url": "/docs"
     }
 
-# Automatic database tables initialization for testing convenience
+# ==========================================
+# DATABASE STARTUP LIFECYCLE
+# ==========================================
 @app.on_event("startup")
 async def startup_event():
     async with engine.begin() as conn:
-        # Create all tables if they don't exist
+        # Automatically safely spin up database tables asynchronously if missing
         await conn.run_sync(Base.metadata.create_all)
         print("SQLAlchemy Base ORM tables initialized successfully.")
+
 
 if __name__ == "__main__":
     uvicorn.run(
         "apps.api.main:app",
         host="0.0.0.0",
-        port=int(os.getenv("PORT", "8000"))
+        port=int(os.getenv("PORT", "8000")),
+        reload=True  # Helpful for presentations to hot-reload code if a bug pops up
     )
