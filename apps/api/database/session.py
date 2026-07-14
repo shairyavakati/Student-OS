@@ -14,11 +14,9 @@ if raw_url.startswith("postgresql://"):
     raw_url = raw_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 
 # Fix for the '@' symbol in passwords (e.g., shairya@150307)
-# Splits the driver from credentials, then safely encodes the credential chunk
-if ":// " not in raw_url and raw_url.count("@") > 1:
+if "://" in raw_url and raw_url.count("@") > 1:
     try:
         scheme, remainder = raw_url.split("://", 1)
-        # Find the last '@' symbol which designates the host address boundary
         auth_chunk, host_chunk = remainder.rsplit("@", 1)
         
         if ":" in auth_chunk:
@@ -27,8 +25,12 @@ if ":// " not in raw_url and raw_url.count("@") > 1:
             safe_password = urllib.parse.quote_plus(password)
             raw_url = f"{scheme}://{username}:{safe_password}@{host_chunk}"
     except Exception:
-        # Fallback if manual parsing fails
         pass
+
+# Safely append PgBouncer pooling parameters to the URL query string to prevent crashes
+# This bypasses the unexpected keyword argument error in asyncpg
+separator = "&" if "?" in raw_url else "?"
+raw_url = f"{raw_url}{separator}prepared_threshold=0&statement_cache_size=0"
 
 # ==========================================
 # ASYNC ENGINE INITIALIZATION
@@ -39,15 +41,7 @@ engine = create_async_engine(
     future=True,
     pool_pre_ping=True,  # Disconnect protection
     pool_size=10,
-    max_overflow=20,
-    # CRITICAL FIX FOR SUPABASE PORT 6543 POOLER:
-    # Forces asyncpg to turn off prepared statement configurations that crash PgBouncer
-    connect_args={
-        "server_settings": {
-            "prepared_threshold": "0",
-            "statement_cache_size": "0"
-        }
-    }
+    max_overflow=20
 )
 
 # Async session maker
@@ -72,3 +66,4 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             raise
         finally:
             await session.close()
+            
