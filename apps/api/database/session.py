@@ -3,25 +3,22 @@ import urllib.parse
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import declarative_base
 
-# ==========================================
-# DIRECT CONNECTION TO SUPABASE (PORT 5432)
-# ==========================================
-# This completely bypasses PgBouncer/Supavisor parsing errors
-DB_USER = "postgres"  # Standard username for direct connection
-DB_PASS = "Shairya@150307"
-DB_HOST = "db.ymmvlncvpagxebjgqoya.supabase.co"  # Direct Supabase host
-DB_PORT = "5432"  # Direct Postgres port
+# ===================================================
+# IPV4 POOLER - SESSION MODE (PORT 5432)
+# ===================================================
+DB_USER = "postgres.ymmvlncvpagxebjgqoya"  # Complete pooler username
+DB_PASS = "Shairya@150307"                 # Your password
+DB_HOST = "aws-0-ap-southeast-1.pooler.supabase.com"
+DB_PORT = "5432"                           # Port 5432 = Session Mode (No prepared statement errors!)
 DB_NAME = "postgres"
 
-# URL-encode the password to safely handle the '@' symbol
+# Safely encode the password to handle the '@' symbol
 encoded_pass = urllib.parse.quote_plus(DB_PASS)
 
-# Construct the clean direct connection string
+# Construct a standard, clean connection string
 raw_url = f"postgresql+asyncpg://{DB_USER}:{encoded_pass}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
-# ==========================================
-# ASYNC ENGINE INITIALIZATION
-# ==========================================
+# Initialize the engine (no tricky connect_args needed!)
 engine = create_async_engine(
     raw_url,
     echo=False,
