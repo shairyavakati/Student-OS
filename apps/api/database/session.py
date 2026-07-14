@@ -1,62 +1,56 @@
+import os
 from typing import AsyncGenerator
-
-from sqlalchemy.ext.asyncio import (
-    AsyncSession,
-    async_sessionmaker,
-    create_async_engine,
-)
+import urllib.parse
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import declarative_base
 
 from apps.api.core.config import settings
 
 # ===================================================
-# DATABASE ENGINE
+# IPV4 POOLER - SESSION MODE (PORT 5432)
 # ===================================================
+DB_USER = "postgres.ymmvlncvpagxebjgqoya"  # Complete pooler username
+DB_PASS = "Shairya@150307"                 # Your password
+DB_HOST = "aws-0-ap-southeast-1.pooler.supabase.com"
+DB_PORT = "5432"                           # Port 5432 = Session Mode (No prepared statement errors!)
+DB_NAME = "postgres"
 
-# Temporary debug (remove after deployment succeeds)
-safe_url = settings.DATABASE_URL
-if "@" in safe_url and "://" in safe_url:
-    prefix, rest = safe_url.split("://", 1)
-    if "@" in rest:
-        creds, host = rest.split("@", 1)
-        if ":" in creds:
-            user, _ = creds.split(":", 1)
-            safe_url = f"{prefix}://{user}:*****@{host}"
+# Safely encode the password to handle the '@' symbol
+encoded_pass = urllib.parse.quote_plus(DB_PASS)
 
-print(f"DATABASE_URL: {safe_url}")
+# Construct a standard, clean connection string
+raw_url = f"postgresql+asyncpg://{DB_USER}:{encoded_pass}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
+# Initialize the engine (no tricky connect_args needed!)
 engine = create_async_engine(
-    settings.DATABASE_URL,
+    raw_url,
     echo=False,
     future=True,
     pool_pre_ping=True,
     pool_size=10,
-    max_overflow=20,
+    max_overflow=20
 )
 
-# ===================================================
-# SESSION
-# ===================================================
-
+# Async session maker
 async_session = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
     expire_on_commit=False,
-    autoflush=False,
+    autocommit=False,
+    autoflush=False
 )
 
 Base = declarative_base()
 
-# ===================================================
-# DATABASE DEPENDENCY
-# ===================================================
-
+# Database Dependency Injection yield
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    async with async_session() as session:
+    async with AsyncSessionLocal() as session:
         try:
             yield session
             await session.commit()
-        except Exception:
+        except Exception as e:
             await session.rollback()
+            print("DATABASE ERROR:", e)
             raise
-        
+        finally:
+            await session.close()
