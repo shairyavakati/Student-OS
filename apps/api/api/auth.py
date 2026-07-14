@@ -14,27 +14,40 @@ router = APIRouter()
 
 @router.post("/signup", response_model=ProfileOut, status_code=status.HTTP_201_CREATED)
 async def signup(schema: UserSignup, db: AsyncSession = Depends(get_db)):
-    existing_user = await user_repo.get_by_email(db, schema.email)
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="A user with this email already exists"
+    try:
+        print("Signup Request:", schema.model_dump())   # Use schema.dict() if using Pydantic v1
+
+        existing_user = await user_repo.get_by_email(db, schema.email)
+
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="A user with this email already exists"
+            )
+
+        hashed_pass = get_password_hash(schema.password)
+
+        db_obj = Profile(
+            full_name=schema.full_name,
+            email=schema.email,
+            semester=schema.semester,
+            department=schema.department,
+            avatar_url="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150",
+            hashed_password=hashed_pass,
         )
 
-    hashed_pass = get_password_hash(schema.password)
-    db_obj = Profile(
-        full_name=schema.full_name,
-        email=schema.email,
-        semester=schema.semester,
-        department=schema.department,
-        avatar_url="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150",
-        hashed_password=hashed_pass,
-    )
-    db.add(db_obj)
-    await db.commit()
-    await db.refresh(db_obj)
+        db.add(db_obj)
 
-    return db_obj
+        await db.commit()
+        await db.refresh(db_obj)
+
+        print("User Created:", db_obj.email)
+
+        return db_obj
+
+    except Exception as e:
+        print("Signup Error:", repr(e))
+        raise
 
 @router.post("/login", response_model=Token)
 async def login(schema: UserLogin, db: AsyncSession = Depends(get_db)):
