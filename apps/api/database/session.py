@@ -1,52 +1,48 @@
+import os
 from typing import AsyncGenerator
-import urllib.parse
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+
+from dotenv import load_dotenv
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 from sqlalchemy.orm import declarative_base
 
-# ===================================================
-# IPV4 POOLER - SESSION MODE (PORT 5432)
-# ===================================================
-DB_USER = "postgres.ymmvlncvpagxebjgqoya"  # Complete pooler username
-DB_PASS = "Shairya@150307"                 # Your password
-DB_HOST = "aws-0-ap-southeast-1.pooler.supabase.com"
-DB_PORT = "5432"                           # Port 5432 = Session Mode (No prepared statement errors!)
-DB_NAME = "postgres"
+# Load environment variables
+load_dotenv()
 
-# Safely encode the password to handle the '@' symbol
-encoded_pass = urllib.parse.quote_plus(DB_PASS)
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Construct a standard, clean connection string
-raw_url = f"postgresql+asyncpg://{DB_USER}:{encoded_pass}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL is not set")
 
-# Initialize the engine (no tricky connect_args needed!)
 engine = create_async_engine(
-    raw_url,
-    echo=False,
+    DATABASE_URL,
+    echo=True,              # Change to False in production
     future=True,
     pool_pre_ping=True,
-    pool_size=10,
-    max_overflow=20
 )
 
-# Async session maker
-async_session = async_sessionmaker(
+AsyncSessionLocal = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
     expire_on_commit=False,
+    autoflush=False,
     autocommit=False,
-    autoflush=False
 )
 
 Base = declarative_base()
 
-# Database Dependency Injection yield
+
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    async with async_session() as session:
+    async with AsyncSessionLocal() as session:
         try:
             yield session
             await session.commit()
-        except Exception:
+        except Exception as e:
             await session.rollback()
+            print("DATABASE ERROR:", e)
             raise
         finally:
             await session.close()
