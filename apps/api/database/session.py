@@ -9,11 +9,11 @@ from ..core.config import settings
 # ==========================================
 raw_url = settings.DATABASE_URL
 
-# Fast safety fallback: Explicitly convert to asyncpg driver syntax if needed
+# Safety check: Ensure the url utilizes the asyncpg driver prefix
 if raw_url.startswith("postgresql://"):
     raw_url = raw_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 
-# Fix for the '@' symbol in passwords (e.g., shairya@150307)
+# Fix for special characters like '@' in your password (shairya@150307)
 if "://" in raw_url and raw_url.count("@") > 1:
     try:
         scheme, remainder = raw_url.split("://", 1)
@@ -27,10 +27,13 @@ if "://" in raw_url and raw_url.count("@") > 1:
     except Exception:
         pass
 
-# Safely append PgBouncer pooling parameters to the URL query string to prevent crashes
-# This bypasses the unexpected keyword argument error in asyncpg
+# ==========================================
+# SAFE BARS FOR SUPABASE PGBOUNCER (6543)
+# ==========================================
+# Appending 'prepared_statement_cache_size=0' tells SQLAlchemy's asyncpg dialect 
+# to turn off prepared statements smoothly without passing illegal arguments.
 separator = "&" if "?" in raw_url else "?"
-raw_url = f"{raw_url}{separator}prepared_threshold=0&statement_cache_size=0"
+raw_url = f"{raw_url}{separator}prepared_statement_cache_size=0"
 
 # ==========================================
 # ASYNC ENGINE INITIALIZATION
@@ -39,7 +42,7 @@ engine = create_async_engine(
     raw_url,
     echo=False,
     future=True,
-    pool_pre_ping=True,  # Disconnect protection
+    pool_pre_ping=True,  # Disconnect drop protection
     pool_size=10,
     max_overflow=20
 )
@@ -66,4 +69,3 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             raise
         finally:
             await session.close()
-            
