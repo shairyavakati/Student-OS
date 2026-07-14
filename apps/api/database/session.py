@@ -2,19 +2,21 @@ from typing import AsyncGenerator
 import urllib.parse
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import declarative_base
-from ..core.config import settings
 
-# Exact, hardcoded credentials to bypass any dynamic parsing failures
-DB_USER = "postgres.ymmvlncvpagxebjgqoya"
-DB_PASS = "shairya@150307"
-DB_HOST = "aws-0-ap-southeast-1.pooler.supabase.com"
-DB_PORT = "6543"
+# ==========================================
+# DIRECT CONNECTION TO SUPABASE (PORT 5432)
+# ==========================================
+# This completely bypasses PgBouncer/Supavisor parsing errors
+DB_USER = "postgres"  # Standard username for direct connection
+DB_PASS = "Shairya@150307"
+DB_HOST = "db.ymmvlncvpagxebjgqoya.supabase.co"  # Direct Supabase host
+DB_PORT = "5432"  # Direct Postgres port
 DB_NAME = "postgres"
 
 # URL-encode the password to safely handle the '@' symbol
 encoded_pass = urllib.parse.quote_plus(DB_PASS)
 
-# Construct a clean connection string
+# Construct the clean direct connection string
 raw_url = f"postgresql+asyncpg://{DB_USER}:{encoded_pass}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 # ==========================================
@@ -26,11 +28,7 @@ engine = create_async_engine(
     future=True,
     pool_pre_ping=True,
     pool_size=10,
-    max_overflow=20,
-    # Crucial argument to disable prepared statement cache for connection pooling (PgBouncer)
-    connect_args={
-        "prepared_statement_cache_size": 0
-    }
+    max_overflow=20
 )
 
 # Async session maker
